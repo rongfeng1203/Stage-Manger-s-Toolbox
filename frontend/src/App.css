@@ -1,0 +1,131 @@
+.app-shell {
+  min-height: 100svh;
+  padding: 32px;
+}
+
+.masthead {
+  border-bottom: 1px solid #111111;
+  padding-bottom: 24px;
+}
+
+.kicker,
+.section-label,
+.subtitle,
+.workflow-step,
+button {
+  text-transform: uppercase;
+}
+
+.kicker,
+.subtitle,
+.section-label {
+  color: #666666;
+}
+
+.kicker {
+  margin: 0 0 8px;
+}
+
+h1 {
+  font-size: 40px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.subtitle {
+  margin: 16px 0 0;
+}
+
+.workflow {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  border: 1px solid #111111;
+  border-left: 0;
+  margin: 24px 0;
+}
+
+.workflow-step {
+  color: #111111;
+  border-left: 1px solid #111111;
+  padding: 12px 8px;
+  text-decoration: none;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.workflow-step[aria-current='step'] {
+  background: #111111;
+  color: #f4f2ec;
+}
+
+.panel {
+  border: 1px solid #111111;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.section-label {
+  margin-bottom: 16px;
+}
+
+h2 {
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+
+.check-grid {
+  display: grid;
+  border-top: 1px solid #111111;
+}
+
+.check-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 16px;
+  border-bottom: 1px solid #111111;
+  padding: 12px 0;
+}
+
+.check-row span {
+  color: #666666;
+}
+
+p {
+  max-width: 920px;
+}
+
+button {
+  font: inherit;
+  background: #f4f2ec;
+  color: #111111;
+  border: 1px solid #111111;
+  padding: 8px 16px;
+  margin-top: 24px;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  background: #111111;
+  color: #f4f2ec;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  .workflow {
+    grid-template-columns: 1fr;
+  }
+
+  .check-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
