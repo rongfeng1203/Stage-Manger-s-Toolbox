@@ -12,13 +12,18 @@
 .section-label,
 .subtitle,
 .workflow-step,
-button {
+button,
+label,
+th {
   text-transform: uppercase;
 }
 
 .kicker,
 .subtitle,
-.section-label {
+.section-label,
+label,
+th,
+.summary-row span {
   color: #666666;
 }
 
@@ -69,46 +74,375 @@ h1 {
   margin-bottom: 16px;
 }
 
+.demo-button {
+  margin-bottom: 16px;
+}
+
 h2 {
   font-size: 20px;
   margin: 0 0 16px;
 }
 
-.check-grid {
+.grid-form,
+.inline-form,
+.stack-form {
   display: grid;
-  border-top: 1px solid #111111;
-}
-
-.check-row {
-  display: grid;
-  grid-template-columns: 160px 1fr;
   gap: 16px;
-  border-bottom: 1px solid #111111;
-  padding: 12px 0;
 }
 
-.check-row span {
+.grid-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.inline-form {
+  align-items: end;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  margin-top: 24px;
+}
+
+.stack-form {
+  align-content: start;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+
+input,
+select,
+textarea,
+button {
+  border: 1px solid #111111;
+  border-radius: 0;
+  font: inherit;
+}
+
+input,
+select {
+  background: #f4f2ec;
+  color: #111111;
+  min-height: 38px;
+  padding: 8px;
+  width: 100%;
+}
+
+textarea {
+  background: #f4f2ec;
+  color: #111111;
+  padding: 8px;
+  resize: vertical;
+  width: 100%;
+}
+
+.script-analysis-input,
+.script-review {
+  display: grid;
+  gap: 16px;
+}
+
+.file-import {
+  border-bottom: 1px solid #111111;
+  padding-bottom: 24px;
+}
+
+.file-import input[type='file'] {
+  padding: 6px;
+}
+
+.paste-label,
+.candidate-label {
+  margin-top: 24px;
+}
+
+.upload-summary {
+  border-top: 1px solid #111111;
+  margin-top: 16px;
+}
+
+.script-analysis-input button,
+.script-review > button {
+  justify-self: start;
+}
+
+.script-review {
+  border-top: 1px solid #111111;
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.detected-scene {
+  align-items: end;
+  border-bottom: 1px solid #111111;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 120px minmax(160px, 1fr) minmax(220px, 1.5fr) auto;
+  padding-bottom: 12px;
+}
+
+.detected-scene span,
+.status-message {
   color: #666666;
 }
 
-p {
-  max-width: 920px;
+.manual-entry-label {
+  border-top: 1px solid #111111;
+  margin-top: 32px;
+  padding-top: 24px;
+}
+
+.approval-check {
+  border-bottom: 1px solid #111111;
+  margin-top: 24px;
+  padding-bottom: 16px;
+}
+
+.availability-sync {
+  border-bottom: 1px solid #111111;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+}
+
+.availability-sync .publish-actions {
+  align-items: center;
+}
+
+.availability-sync .text-link {
+  margin-top: 0;
+}
+
+.import-errors {
+  color: #8a1c1c;
+  margin: 12px 0 0;
+  padding-left: 20px;
+}
+
+.publish-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.calendar-preview,
+.publish-report {
+  border-top: 1px solid #111111;
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.publish-report {
+  font-weight: 700;
+}
+
+.warning-text {
+  color: #8a1c1c;
+}
+
+.text-link {
+  color: #111111;
+  display: inline-block;
+  margin-top: 16px;
 }
 
 button {
-  font: inherit;
   background: #f4f2ec;
   color: #111111;
-  border: 1px solid #111111;
-  padding: 8px 16px;
-  margin-top: 24px;
   cursor: pointer;
+  min-height: 38px;
+  padding: 8px 16px;
 }
 
 button:hover,
 button:focus-visible {
   background: #111111;
   color: #f4f2ec;
+}
+
+.checkbox-label {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-height: 38px;
+}
+
+.checkbox-label input {
+  min-height: 16px;
+  width: 16px;
+}
+
+table {
+  border-collapse: collapse;
+  margin-top: 16px;
+  table-layout: fixed;
+  width: 100%;
+}
+
+th,
+td {
+  border: 1px solid #111111;
+  overflow-wrap: anywhere;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.metrics-grid {
+  display: grid;
+  border-top: 1px solid #111111;
+}
+
+.summary-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  border-bottom: 1px solid #111111;
+  padding: 10px 0;
+}
+
+.schedule-workspace {
+  border-top: 1px solid #111111;
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.plan-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.plan-card {
+  border: 1px solid #111111;
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+h3 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.plan-metrics {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.plan-metrics div {
+  border-bottom: 1px solid #111111;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr auto;
+  padding: 8px 0;
+}
+
+.plan-metrics dt {
+  color: #666666;
+  text-transform: uppercase;
+}
+
+.plan-metrics dd {
+  margin: 0;
+}
+
+.schedule-detail {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1.2fr 1fr;
+}
+
+.schedule-detail section:first-child {
+  grid-row: span 2;
+}
+
+.timeline-list {
+  border-top: 1px solid #111111;
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.timeline-list li {
+  border-bottom: 1px solid #111111;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 170px 100px 1fr;
+  padding: 10px 0;
+}
+
+.edit-session-list {
+  border-top: 1px solid #111111;
+  display: grid;
+  gap: 0;
+  margin-top: 16px;
+}
+
+.edit-session-row,
+.manual-session-form {
+  align-items: end;
+  border-bottom: 1px solid #111111;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 80px minmax(190px, 1fr) 120px auto;
+  padding: 12px 0;
+}
+
+.manual-session-form {
+  border-top: 1px solid #111111;
+  margin-top: 16px;
+}
+
+.timeline-list time,
+.timeline-list span,
+.conflict-list,
+.edit-session-list p {
+  color: #666666;
+}
+
+.conflict-list {
+  border-top: 1px solid #111111;
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.conflict-list li {
+  border-bottom: 1px solid #111111;
+  padding: 10px 0;
+}
+
+@media (max-width: 980px) {
+  .grid-form,
+  .inline-form,
+  .detected-scene,
+  .edit-session-row,
+  .manual-session-form,
+  .plan-grid,
+  .schedule-detail,
+  .two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-detail section:first-child {
+    grid-row: auto;
+  }
 }
 
 @media (max-width: 760px) {
@@ -124,8 +458,12 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .check-row {
+  .summary-row {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+
+  .timeline-list li {
+    grid-template-columns: 1fr;
   }
 }

@@ -1,0 +1,4 @@
+This file has dialogue but no scene structure.
+
+HAMLET
+To be, or not to be.

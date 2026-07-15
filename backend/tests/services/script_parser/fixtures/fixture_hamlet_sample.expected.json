@@ -1,0 +1,25 @@
+{
+  "title": "HAMLET",
+  "scenes": [
+    {
+      "scene_code": "A1S1",
+      "title": "Battlements",
+      "characters": ["Hamlet", "Horatio"],
+      "dialogue_cue_count": 3,
+      "stage_direction_count": 1
+    },
+    {
+      "scene_code": "A1S2",
+      "title": "Court",
+      "characters": ["Hamlet", "King Claudius"],
+      "dialogue_cue_count": 2,
+      "stage_direction_count": 0
+    }
+  ],
+  "character_candidates": [
+    {"name": "Hamlet", "cue_count": 3, "accepted": true},
+    {"name": "Horatio", "cue_count": 1, "accepted": true},
+    {"name": "King Claudius", "cue_count": 1, "accepted": true}
+  ],
+  "warnings": []
+}

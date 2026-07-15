@@ -1,0 +1,23 @@
+{
+  "title": "EDGE PLAY",
+  "scenes": [
+    {
+      "scene_code": "A1S1",
+      "title": "Start",
+      "characters": ["First Guard"],
+      "dialogue_cue_count": 2,
+      "stage_direction_count": 1
+    },
+    {
+      "scene_code": "A1S2",
+      "title": "Empty",
+      "characters": [],
+      "dialogue_cue_count": 0,
+      "stage_direction_count": 0
+    }
+  ],
+  "character_candidates": [
+    {"name": "First Guard", "cue_count": 2, "accepted": true}
+  ],
+  "warnings": ["EMPTY_SCENE", "REPEATED_SCENE_HEADER"]
+}
