@@ -16,6 +16,7 @@ manager approval.
 - Manual session move, duration, delete, and add operations revalidated by Python.
 - Calendar event preview, approval gate, fake publisher, and Google publisher interface.
 - Google OAuth callback, refresh-token storage, and free/busy availability import.
+- Blocking notebook with ordered beats, stage positions, movements, cues, and Python validation.
 - One-click complete demo production.
 - Pytest, Hypothesis, Vitest, Playwright, mypy, Ruff, ESLint, and Prettier coverage.
 
@@ -91,9 +92,13 @@ the repository or deployment image.
 Deploy from the repository root:
 
 ```bash
+npm --prefix frontend run build -- --outDir ../public
 vercel
 vercel --prod
 ```
+
+The local frontend build must run before `vercel` so the Python function bundle
+contains the hashed files referenced by `public/index.html`.
 
 ## Demo Flow
 
@@ -102,6 +107,7 @@ vercel --prod
 3. Generate the three schedules and review the balanced plan.
 4. Move a rehearsal outside availability to show Python conflict detection, then restore it.
 5. Preview calendar events, approve the selected schedule, and publish through the demo publisher.
+6. Create a blocking beat, place and move an actor, add a cue, and validate the notebook.
 
 The demo publisher makes no external calls. The configured Google scope is
 read-only free/busy access; Google event publishing requires a separate

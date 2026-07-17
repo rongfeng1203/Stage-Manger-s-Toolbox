@@ -119,6 +119,50 @@ export type GoogleAvailabilityImport = {
   errors: { actorId: number; email: string; reason: string }[]
 }
 
+export type BlockingValidationPayload = {
+  stage: { width: number; depth: number }
+  known_actor_ids: number[]
+  known_scene_ids: number[]
+  beats: {
+    id: number
+    scene_id: number
+    label: string
+    order: number
+    positions: { actor_id: number; x: number; y: number }[]
+    movements: {
+      actor_id: number
+      from_x: number
+      from_y: number
+      to_x: number
+      to_y: number
+      sequence: number
+    }[]
+    cues: {
+      id: number
+      cue_type: string
+      label: string
+      trigger: string
+    }[]
+  }[]
+}
+
+export type BlockingValidationResponse = {
+  valid: boolean
+  summary: {
+    beatCount: number
+    positionCount: number
+    movementCount: number
+    cueCount: number
+  }
+  issues: {
+    code: string
+    message: string
+    beatId?: number
+    actorId?: number
+    cueId?: number
+  }[]
+}
+
 export async function validateSchedule(
   payload: ScheduleValidationPayload,
 ): Promise<ScheduleValidationResponse> {
@@ -136,6 +180,16 @@ export async function validateSchedule(
     )
   }
   return (await response.json()) as ScheduleValidationResponse
+}
+
+export function validateBlockingNotebook(
+  payload: BlockingValidationPayload,
+): Promise<BlockingValidationResponse> {
+  return jsonRequest('/api/blocking/validate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
 }
 
 export async function analyzeScript(text: string): Promise<ScriptAnalysis> {

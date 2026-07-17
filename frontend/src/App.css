@@ -4,13 +4,10 @@
 }
 
 .masthead {
-  border-bottom: 1px solid #111111;
-  padding-bottom: 24px;
+  padding: 4px 0 8px;
 }
 
-.kicker,
 .section-label,
-.subtitle,
 .workflow-step,
 button,
 label,
@@ -18,8 +15,6 @@ th {
   text-transform: uppercase;
 }
 
-.kicker,
-.subtitle,
 .section-label,
 label,
 th,
@@ -27,26 +22,18 @@ th,
   color: #666666;
 }
 
-.kicker {
-  margin: 0 0 8px;
-}
-
 h1 {
-  font-size: 40px;
+  font-size: 34px;
   line-height: 1.1;
   margin: 0;
 }
 
-.subtitle {
-  margin: 16px 0 0;
-}
-
 .workflow {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   border: 1px solid #111111;
   border-left: 0;
-  margin: 24px 0;
+  margin: 20px 0 28px;
 }
 
 .workflow-step {
@@ -71,7 +58,8 @@ h1 {
 }
 
 .section-label {
-  margin-bottom: 16px;
+  font-size: 12px;
+  margin-bottom: 10px;
 }
 
 .demo-button {
@@ -79,8 +67,8 @@ h1 {
 }
 
 h2 {
-  font-size: 20px;
-  margin: 0 0 16px;
+  font-size: 22px;
+  margin: 0 0 24px;
 }
 
 .grid-form,
@@ -193,7 +181,7 @@ textarea {
   color: #666666;
 }
 
-.manual-entry-label {
+.subsection-heading {
   border-top: 1px solid #111111;
   margin-top: 32px;
   padding-top: 24px;
@@ -251,6 +239,23 @@ textarea {
   color: #111111;
   display: inline-block;
   margin-top: 16px;
+}
+
+.workflow-action {
+  align-items: center;
+  border-bottom: 1px solid #111111;
+  border-top: 1px solid #111111;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  justify-content: space-between;
+  margin: 16px 0 24px;
+  padding: 12px 0;
+}
+
+.workflow-action .status-message,
+.workflow-action .text-link {
+  margin: 0;
 }
 
 button {
@@ -455,7 +460,15 @@ h3 {
   }
 
   .workflow {
-    grid-template-columns: 1fr;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .workflow-step {
+    flex: 0 0 auto;
+    min-width: 132px;
+    scroll-snap-align: start;
   }
 
   .summary-row {

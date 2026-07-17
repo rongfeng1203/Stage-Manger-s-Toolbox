@@ -55,7 +55,7 @@ test('creates a complete manual scheduling input', async ({ page }) => {
   await expect(page.getByText('Hamlet').first()).toBeVisible()
   await expect(page.getByText('Rina Feng').first()).toBeVisible()
   await expect(page.getByText('A1S1').first()).toBeVisible()
-  await expect(page.getByText('Battlements')).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'Battlements' })).toBeVisible()
   await expect(page.getByText('120 MIN')).toBeVisible()
   await expect(page.getByText('2026-07-14T18:00')).toBeVisible()
   await expect(page.getByText('AVAILABILITY WINDOWS')).toBeVisible()
@@ -73,10 +73,14 @@ test('creates a complete manual scheduling input', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: 'PLAN C // SCENE PRIORITY' }),
   ).toBeVisible()
-  await expect(page.getByText('METRICS TABLE')).toBeVisible()
-  await expect(page.getByText('DAILY TIMELINE')).toBeVisible()
-  await expect(page.getByText('SCENE DEBT')).toBeVisible()
-  await expect(page.getByText('CONFLICTS', { exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'PLAN COMPARISON' }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'DAILY TIMELINE: EFFICIENT' }),
+  ).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'SCENE DEBT' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'CONFLICTS' })).toBeVisible()
   await expect(page.getByText('NO CONFLICTS DETECTED')).toBeVisible()
 
   await page.getByLabel('Move A1S1 start').fill('2026-07-14T17:00')
@@ -126,4 +130,65 @@ test('uploads a script file and produces reviewable analysis', async ({
   await expect(
     page.getByRole('button', { name: '[ CONFIRM IMPORT ]' }),
   ).toBeVisible()
+  await page.getByRole('button', { name: '[ CONFIRM IMPORT ]' }).click()
+  await expect(page.getByLabel('Actor name')).toBeFocused()
+  await expect(
+    page.getByText('CHARACTERS IMPORTED // ADD ACTORS AND ASSIGN ROLES'),
+  ).toBeVisible()
+})
+
+test('records and validates a persistent blocking notebook', async ({
+  page,
+}) => {
+  await page.goto('/#blocking')
+  await page.getByRole('button', { name: '[ LOAD DEMO PRODUCTION ]' }).click()
+
+  await page.getByLabel('Beat label').fill('Entrance')
+  await page.getByRole('button', { name: '[ ADD BEAT ]' }).click()
+
+  const stage = page.getByRole('button', { name: 'Stage plot' })
+  const stageBox = await stage.boundingBox()
+  if (!stageBox) {
+    throw new Error('stage plot is not visible')
+  }
+  await stage.click({
+    position: { x: stageBox.width * 0.2, y: stageBox.height * 0.4 },
+  })
+  await expect(page.getByRole('status')).toContainText('ACTOR PLACED')
+
+  await page.getByRole('button', { name: 'MOVE' }).click()
+  await stage.click({
+    position: { x: stageBox.width * 0.6, y: stageBox.height * 0.7 },
+  })
+  await expect(page.getByRole('status')).toContainText('MOVEMENT 1 RECORDED')
+  const actorBox = await page.locator('.actor-initials').boundingBox()
+  const endpointBox = await page.locator('.movement-layer circle').boundingBox()
+  const stageRightBox = await page.locator('.stage-right').boundingBox()
+  const stageLeftBox = await page.locator('.stage-left').boundingBox()
+  if (!actorBox || !endpointBox || !stageRightBox || !stageLeftBox) {
+    throw new Error('blocking geometry is incomplete')
+  }
+  const actorX = actorBox.x + actorBox.width / 2
+  const actorY = actorBox.y + actorBox.height / 2
+  const endpointX = endpointBox.x + endpointBox.width / 2
+  const endpointY = endpointBox.y + endpointBox.height / 2
+  expect(Math.abs(actorX - endpointX)).toBeLessThan(1)
+  expect(Math.abs(actorY - endpointY)).toBeLessThan(1)
+  expect(stageRightBox.x).toBeLessThan(stageLeftBox.x)
+
+  await page.getByLabel('CUE LABEL').fill('LX 1')
+  await page
+    .getByRole('textbox', { name: 'TRIGGER', exact: true })
+    .fill('Door closes')
+  await page.getByRole('button', { name: '[ ADD CUE ]' }).click()
+  await page
+    .getByRole('button', { name: '[ VALIDATE BLOCKING NOTEBOOK ]' })
+    .click()
+  await expect(page.getByText('READY // NO BLOCKING CONFLICTS')).toBeVisible()
+
+  await page.reload()
+  await expect(
+    page.getByRole('button', { name: /01 \/\/ UNKNOWN ENTRANCE/ }),
+  ).toBeVisible()
+  await expect(page.getByText('DOOR CLOSES')).toBeVisible()
 })

@@ -1,6 +1,7 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 
 import './App.css'
+import { BlockingTool } from './BlockingTool'
 import {
   analyzeScript,
   analyzeScriptFile,
@@ -27,7 +28,15 @@ const workflowSteps = [
   'REQUIREMENTS',
   'SCHEDULE',
   'PUBLISH',
+  'BLOCKING',
 ] as const
+
+type WorkflowStep = (typeof workflowSteps)[number]
+
+function workflowStepFromHash(): WorkflowStep | '' {
+  const hash = window.location.hash.slice(1).toUpperCase()
+  return workflowSteps.find((step) => step === hash) ?? ''
+}
 
 type Production = {
   name: string
@@ -170,6 +179,10 @@ function loadStoredProduction(): Production {
 }
 
 function App() {
+  const actorNameInputRef = useRef<HTMLInputElement>(null)
+  const [activeWorkflowStep, setActiveWorkflowStep] = useState<
+    WorkflowStep | ''
+  >(workflowStepFromHash)
   const [production, setProduction] = useState<Production>(loadStoredProduction)
   const [actors, setActors] = useState<Actor[]>([])
   const [characters, setCharacters] = useState<Character[]>([])
@@ -266,11 +279,20 @@ function App() {
       ? 'ENTER PRODUCTION START AND END DATES'
       : !production.dailyStartTime || !production.dailyEndTime
         ? 'ENTER DAILY START AND END TIMES'
-      : actors.length === 0
+        : actors.length === 0
           ? 'ADD ACTORS BEFORE IMPORTING'
           : actorEmailCount === 0
             ? 'ADD AT LEAST ONE ACTOR EMAIL'
             : ''
+
+  useEffect(() => {
+    const syncWorkflowStep = () => {
+      setActiveWorkflowStep(workflowStepFromHash())
+    }
+
+    window.addEventListener('hashchange', syncWorkflowStep)
+    return () => window.removeEventListener('hashchange', syncWorkflowStep)
+  }, [])
 
   useEffect(() => {
     void getCalendarStatus()
@@ -551,6 +573,7 @@ function App() {
     setScenes(importedScenes)
     setSceneCharacters(importedRequirements)
     setScriptError('SCRIPT IMPORT CONFIRMED')
+    actorNameInputRef.current?.focus()
   }
 
   function addCastAssignment(event: FormEvent<HTMLFormElement>) {
@@ -673,7 +696,9 @@ function App() {
         connected: false,
         freeBusyReachable: false,
         message:
-          error instanceof Error ? error.message : 'Google connection test failed',
+          error instanceof Error
+            ? error.message
+            : 'Google connection test failed',
       })
     } finally {
       setCalendarDiagnosticPending(false)
@@ -920,20 +945,17 @@ function App() {
   return (
     <main className="app-shell">
       <header className="masthead">
-        <p className="kicker">01 / 06</p>
         <h1>STAGE SCHEDULER</h1>
-        <p className="subtitle">
-          DETERMINISTIC STAGE SCHEDULER // RELEASE CANDIDATE
-        </p>
       </header>
 
       <nav className="workflow" aria-label="Production workflow">
         {workflowSteps.map((step, index) => (
           <a
-            aria-current={index === 0 ? 'step' : undefined}
+            aria-current={activeWorkflowStep === step ? 'step' : undefined}
             className="workflow-step"
             href={`#${step.toLowerCase()}`}
             key={step}
+            onClick={() => setActiveWorkflowStep(step)}
           >
             {String(index + 1).padStart(2, '0')} {step}
           </a>
@@ -945,7 +967,6 @@ function App() {
         id="production"
         aria-labelledby="production-heading"
       >
-        <div className="section-label">PRODUCTION SETUP</div>
         <h2 id="production-heading">CREATE PRODUCTION</h2>
         <button
           className="demo-button"
@@ -1057,14 +1078,24 @@ function App() {
       </section>
 
       <section className="panel" id="cast" aria-labelledby="cast-heading">
-        <div className="section-label">CAST</div>
         <h2 id="cast-heading">ACTORS + CHARACTERS</h2>
+        {scriptError === 'SCRIPT IMPORT CONFIRMED' && (
+          <div className="workflow-action" role="status">
+            <p className="status-message">
+              CHARACTERS IMPORTED // ADD ACTORS AND ASSIGN ROLES
+            </p>
+            <a className="text-link" href="#cast">
+              [ ADD FIRST ACTOR ]
+            </a>
+          </div>
+        )}
         <div className="two-column">
           <form className="stack-form" onSubmit={addActor}>
             <label>
               ACTOR NAME
               <input
                 aria-label="Actor name"
+                ref={actorNameInputRef}
                 value={actorDraft.name}
                 onChange={(event) =>
                   setActorDraft((current) => ({
@@ -1163,7 +1194,6 @@ function App() {
       </section>
 
       <section className="panel" id="script" aria-labelledby="script-heading">
-        <div className="section-label">SCRIPT</div>
         <h2 id="script-heading">SCRIPT ANALYSIS</h2>
         <div className="file-import">
           <label>
@@ -1281,9 +1311,7 @@ function App() {
                 ))}
               </ul>
             )}
-            <div className="section-label candidate-label">
-              CHARACTER CANDIDATES
-            </div>
+            <h3 className="candidate-label">CHARACTER CANDIDATES</h3>
             <DataTable
               emptyMessage="NO CHARACTER CANDIDATES"
               headers={['CHARACTER', 'CUES', 'STATUS']}
@@ -1299,8 +1327,7 @@ function App() {
           </div>
         )}
 
-        <div className="section-label manual-entry-label">MANUAL ENTRY</div>
-        <h2>MANUAL SCENE TABLE</h2>
+        <h2 className="subsection-heading">MANUAL SCENE TABLE</h2>
         <form className="grid-form" onSubmit={addScene}>
           <label>
             SCENE CODE
@@ -1382,7 +1409,6 @@ function App() {
         id="requirements"
         aria-labelledby="requirements-heading"
       >
-        <div className="section-label">REHEARSAL REQUIREMENTS</div>
         <h2 id="requirements-heading">ASSIGN CHARACTERS TO SCENES</h2>
         <form className="inline-form" onSubmit={addSceneCharacter}>
           <SelectField
@@ -1444,7 +1470,6 @@ function App() {
         id="availability"
         aria-labelledby="availability-heading"
       >
-        <div className="section-label">AVAILABILITY</div>
         <h2 id="availability-heading">ACTOR WINDOWS</h2>
         <div className="availability-sync">
           <div className="metrics-grid">
@@ -1471,7 +1496,9 @@ function App() {
             )}
             <button
               type="button"
-              disabled={!calendarStatus?.configured || calendarDiagnosticPending}
+              disabled={
+                !calendarStatus?.configured || calendarDiagnosticPending
+              }
               onClick={() => void verifyGoogleConnection()}
             >
               {calendarDiagnosticPending
@@ -1481,8 +1508,7 @@ function App() {
             <button
               type="button"
               disabled={
-                Boolean(availabilityImportBlocker) ||
-                availabilityImportPending
+                Boolean(availabilityImportBlocker) || availabilityImportPending
               }
               onClick={() => void replaceAvailabilityFromGoogle()}
             >
@@ -1541,9 +1567,19 @@ function App() {
             </p>
           )}
         </div>
+        {actors.length === 0 && (
+          <div className="workflow-action">
+            <p className="status-message">NO ACTORS AVAILABLE</p>
+            <a className="text-link" href="#cast">
+              [ ADD ACTORS IN CAST ]
+            </a>
+          </div>
+        )}
         <form className="grid-form" onSubmit={addAvailability}>
           <SelectField
             label="ACTOR"
+            disabled={actors.length === 0}
+            emptyLabel={actors.length === 0 ? 'NO ACTORS ADDED' : 'SELECT'}
             value={availabilityDraft.actorId}
             onChange={(value) =>
               setAvailabilityDraft((current) => ({
@@ -1622,7 +1658,6 @@ function App() {
         id="schedule"
         aria-labelledby="schedule-heading"
       >
-        <div className="section-label">INPUT SUMMARY</div>
         <h2 id="schedule-heading">GENERATE SCHEDULE OPTIONS</h2>
         <div className="metrics-grid">
           <SummaryRow label="PRODUCTION" value={production.name || 'MISSING'} />
@@ -1686,7 +1721,6 @@ function App() {
             </div>
 
             <section aria-labelledby="metrics-table-heading">
-              <div className="section-label">METRICS TABLE</div>
               <h3 id="metrics-table-heading">PLAN COMPARISON</h3>
               <DataTable
                 emptyMessage="NO PLANS"
@@ -1705,8 +1739,9 @@ function App() {
             {selectedPlan && (
               <div className="schedule-detail">
                 <section aria-labelledby="timeline-heading">
-                  <div className="section-label">DAILY TIMELINE</div>
-                  <h3 id="timeline-heading">{selectedPlan.label}</h3>
+                  <h3 id="timeline-heading">
+                    DAILY TIMELINE: {selectedPlan.label}
+                  </h3>
                   <Timeline
                     actors={actors}
                     emptyMessage="NO SESSIONS GENERATED"
@@ -1715,7 +1750,6 @@ function App() {
                 </section>
 
                 <section aria-labelledby="manual-edit-heading">
-                  <div className="section-label">MANUAL EDITS</div>
                   <h3 id="manual-edit-heading">OVERRIDE + REVALIDATE</h3>
                   <div className="edit-session-list">
                     {selectedPlan.sessions.length === 0 ? (
@@ -1816,8 +1850,7 @@ function App() {
                 </section>
 
                 <section aria-labelledby="debt-heading">
-                  <div className="section-label">SCENE DEBT</div>
-                  <h3 id="debt-heading">DEBT COMPLETE</h3>
+                  <h3 id="debt-heading">SCENE DEBT</h3>
                   <DataTable
                     emptyMessage="NO SCENE DEBT"
                     headers={['SCENE', 'REQUIRED', 'SCHEDULED', 'REMAINING']}
@@ -1831,8 +1864,7 @@ function App() {
                 </section>
 
                 <section aria-labelledby="conflicts-heading">
-                  <div className="section-label">CONFLICTS</div>
-                  <h3 id="conflicts-heading">SCHEDULER CHECKS</h3>
+                  <h3 id="conflicts-heading">CONFLICTS</h3>
                   <ul className="conflict-list">
                     {validationPending ? (
                       <li>VALIDATING WITH PYTHON...</li>
@@ -1852,7 +1884,6 @@ function App() {
       </section>
 
       <section className="panel" id="publish" aria-labelledby="publish-heading">
-        <div className="section-label">06 / 06 // PUBLISH</div>
         <h2 id="publish-heading">CALENDAR APPROVAL</h2>
         <div className="metrics-grid">
           <SummaryRow
@@ -1923,7 +1954,7 @@ function App() {
         )}
         {calendarPreview && (
           <div className="calendar-preview">
-            <div className="section-label">EVENT PREVIEW</div>
+            <h3>EVENT PREVIEW</h3>
             <div className="metrics-grid">
               <SummaryRow
                 label="SESSION COUNT"
@@ -1960,28 +1991,40 @@ function App() {
           </div>
         )}
       </section>
+
+      <BlockingTool actors={actors} scenes={scenes} />
     </main>
   )
 }
 
 type SelectFieldProps = {
+  disabled?: boolean
+  emptyLabel?: string
   label: string
   value: string
   options: { label: string; value: string }[]
   onChange: (value: string) => void
 }
 
-function SelectField({ label, onChange, options, value }: SelectFieldProps) {
+function SelectField({
+  disabled = false,
+  emptyLabel = 'SELECT',
+  label,
+  onChange,
+  options,
+  value,
+}: SelectFieldProps) {
   return (
     <label>
       {label}
       <select
         aria-label={sentenceCase(label)}
+        disabled={disabled}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         required
       >
-        <option value="">SELECT</option>
+        <option value="">{emptyLabel}</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

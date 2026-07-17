@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
 beforeEach(() => {
+  window.history.replaceState(null, '', '/')
   localStorage.clear()
   vi.stubGlobal(
     'fetch',
@@ -220,6 +221,7 @@ function timeRange(start: Date, end: Date) {
 
 describe('App', () => {
   it('renders the release candidate workspace', async () => {
+    const user = userEvent.setup()
     render(<App />)
 
     expect(
@@ -234,10 +236,22 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: 'MANUAL SCENE TABLE' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: '01 SCRIPT' })).toHaveAttribute(
+    expect(
+      screen.queryByText('DETERMINISTIC SCHEDULER // STAGE MANAGER TOOLBOX'),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('PRODUCTION SETUP')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '01 SCRIPT' })).not.toHaveAttribute(
+      'aria-current',
+    )
+    await user.click(screen.getByRole('link', { name: '07 BLOCKING' }))
+    expect(screen.getByRole('link', { name: '07 BLOCKING' })).toHaveAttribute(
       'aria-current',
       'step',
     )
+    expect(
+      screen.getByRole('link', { name: '[ ADD ACTORS IN CAST ]' }),
+    ).toHaveAttribute('href', '#cast')
+    expect(screen.getAllByRole('combobox', { name: 'Actor' })[1]).toBeDisabled()
     expect(await screen.findByText('GOOGLE NOT CONFIGURED')).toBeInTheDocument()
   })
 
@@ -452,6 +466,10 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '[ CONFIRM IMPORT ]' }))
 
     expect(screen.getByText('SCRIPT IMPORT CONFIRMED')).toBeInTheDocument()
+    expect(
+      screen.getByText('CHARACTERS IMPORTED // ADD ACTORS AND ASSIGN ROLES'),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Actor name')).toHaveFocus()
     expect(screen.getAllByText('A1S1').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Horatio').length).toBeGreaterThan(0)
   })
@@ -497,13 +515,22 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: 'PLAN C // SCENE PRIORITY' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('METRICS TABLE')).toBeInTheDocument()
-    expect(screen.getByText('DAILY TIMELINE')).toBeInTheDocument()
-    expect(screen.getByText('SCENE DEBT')).toBeInTheDocument()
-    expect(screen.getByText('CONFLICTS')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'PLAN COMPARISON' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: 'DAILY TIMELINE: EFFICIENT',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'SCENE DEBT' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'CONFLICTS' }),
+    ).toBeInTheDocument()
     expect(screen.getByText('NO CONFLICTS DETECTED')).toBeInTheDocument()
     expect(screen.getAllByText('A1S1').length).toBeGreaterThan(1)
-    expect(screen.getByText('DEBT COMPLETE')).toBeInTheDocument()
   })
 
   it('shows conflicts when schedule inputs are incomplete', async () => {
