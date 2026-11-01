@@ -71,7 +71,7 @@ def intersect_windows(left: list[TimeWindow], right: list[TimeWindow]) -> list[T
 def subtract_busy_windows(
     available_windows: list[TimeWindow], busy_windows: list[TimeWindow]
 ) -> list[TimeWindow]:
-    remaining = _sorted_valid_windows(available_windows)
+    remaining = _merge_windows(_sorted_valid_windows(available_windows))
 
     for busy_window in _merge_windows(_sorted_valid_windows(busy_windows)):
         next_remaining: list[TimeWindow] = []

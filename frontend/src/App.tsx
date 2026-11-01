@@ -1,8 +1,12 @@
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 
 import './App.css'
+import scheduleTemplateUrl from './assets/actor-schedule-template.csv?url'
+import { effectiveWindows, matchGoogleWindows } from './availability'
 import { BlockingTool } from './BlockingTool'
 import {
+  importActorSpreadsheet,
+  type SpreadsheetImport,
   analyzeScript,
   analyzeScriptFile,
   type CalendarDiagnostic,
@@ -189,6 +193,12 @@ function App() {
   const [scenes, setScenes] = useState<Scene[]>([])
   const [castAssignments, setCastAssignments] = useState<CastAssignment[]>([])
   const [sceneCharacters, setSceneCharacters] = useState<SceneCharacter[]>([])
+  const [sheetPreview, setSheetPreview] = useState<SpreadsheetImport | null>(
+    null,
+  )
+  const [sheetError, setSheetError] = useState('')
+  const [sheetPending, setSheetPending] = useState(false)
+  const [matchExisting, setMatchExisting] = useState(true)
   const [availability, setAvailability] = useState<Availability[]>([])
   const [schedulePlans, setSchedulePlans] = useState<SchedulePlan[]>([])
   const [selectedPlanId, setSelectedPlanId] = useState<PlanMode>('efficient')
@@ -634,6 +644,61 @@ function App() {
     })
   }
 
+  async function previewSpreadsheet(file: File) {
+    setSheetPending(true)
+    setSheetPreview(null)
+    setSheetError('')
+    try {
+      setSheetPreview(await importActorSpreadsheet(file, actors))
+    } catch (error) {
+      setSheetError(
+        error instanceof Error ? error.message : 'Spreadsheet import failed',
+      )
+    } finally {
+      setSheetPending(false)
+    }
+  }
+
+  function applySpreadsheet() {
+    if (!sheetPreview) return
+    if (
+      sheetPreview.windows.some(
+        (window) => !actors.some((actor) => actor.id === window.actorId),
+      )
+    ) {
+      setSheetError('Cast changed. Upload the spreadsheet again.')
+      setSheetPreview(null)
+      return
+    }
+    setAvailability((current) => {
+      let id = nextNumericId(current)
+      return [
+        ...current,
+        ...sheetPreview.windows
+          .filter(
+            (window) =>
+              !current.some(
+                (item) =>
+                  item.actorId === window.actorId &&
+                  item.start === window.start &&
+                  item.end === window.end &&
+                  item.availabilityType === window.availabilityType,
+              ),
+          )
+          .map((window) => ({ ...window, id: id++ })),
+      ]
+    })
+    setSheetPreview(null)
+    invalidateImportedSchedule()
+  }
+
+  function invalidateImportedSchedule() {
+    setSchedulePlans([])
+    setCalendarApproved(false)
+    setCalendarPreview(null)
+    setPublishReport(null)
+  }
+
   async function replaceAvailabilityFromGoogle() {
     if (
       !production.rehearsalStartDate ||
@@ -657,6 +722,15 @@ function App() {
       })
       const importedActorIds = new Set(result.importedActorIds)
       setAvailability((current) => {
+        if (matchExisting) {
+          return matchGoogleWindows(
+            current,
+            result.windows,
+            result.importedActorIds,
+            `${production.rehearsalStartDate}T${production.dailyStartTime}`,
+            `${production.rehearsalEndDate}T${production.dailyEndTime}`,
+          ).map((window, index) => ({ ...window, id: index + 1 }))
+        }
         const retained = current.filter(
           (window) => !importedActorIds.has(window.actorId),
         )
@@ -672,6 +746,7 @@ function App() {
           })),
         ]
       })
+      invalidateImportedSchedule()
       setAvailabilityImport(result)
     } catch (error) {
       setAvailabilityImport(null)
@@ -1472,6 +1547,93 @@ function App() {
       >
         <h2 id="availability-heading">ACTOR WINDOWS</h2>
         <div className="availability-sync">
+          <h3>IMPORT ACTOR SPREADSHEETS</h3>
+          <p>
+            Upload .xlsx or .csv with actor (exact cast name), email, or
+            actor_id; start; end; and optional type (AVAILABLE, BUSY,
+            PREFERRED). Use ISO dates and times, or a date column with start/end
+            times. Times use your browser timezone.
+          </p>
+          <a href={scheduleTemplateUrl} download>
+            Download schedule template
+          </a>
+          <label>
+            Actor schedule file
+            <input
+              type="file"
+              accept=".xlsx,.csv"
+              disabled={
+                !actors.length || sheetPending || availabilityImportPending
+              }
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (file) void previewSpreadsheet(file)
+                event.target.value = ''
+              }}
+            />
+          </label>
+          {sheetPending && <p role="status">Reading actor schedules…</p>}
+          {sheetError && <p role="alert">{sheetError}</p>}
+          {sheetPreview && (
+            <div>
+              <p>
+                {sheetPreview.windowCount} windows matched. Review before
+                adding; existing windows are kept. Import spreadsheets before
+                matching Google.
+              </p>
+              <div style={{ maxHeight: '18rem', overflow: 'auto' }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Actor</th>
+                      <th>Type</th>
+                      <th>Start</th>
+                      <th>End</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sheetPreview.windows.map((window, index) => (
+                      <tr key={index}>
+                        <td>
+                          {
+                            actors.find((actor) => actor.id === window.actorId)
+                              ?.name
+                          }
+                        </td>
+                        <td>{window.availabilityType}</td>
+                        <td>{window.start}</td>
+                        <td>{window.end}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button
+                type="button"
+                disabled={availabilityImportPending}
+                onClick={applySpreadsheet}
+              >
+                [ ADD IMPORTED WINDOWS ]
+              </button>
+              <button type="button" onClick={() => setSheetPreview(null)}>
+                [ CANCEL IMPORT ]
+              </button>
+            </div>
+          )}
+          <label>
+            <input
+              type="checkbox"
+              checked={matchExisting}
+              disabled={availabilityImportPending}
+              onChange={(event) => setMatchExisting(event.target.checked)}
+            />{' '}
+            Match Google with existing actor windows
+          </label>
+          <p>
+            Matching keeps only times allowed by both sources. Busy windows
+            always block rehearsal. Actors without available windows use Google
+            free time; inaccessible calendars keep their existing windows.
+          </p>
           <div className="metrics-grid">
             <SummaryRow
               label="GOOGLE FREE/BUSY"
@@ -1514,7 +1676,9 @@ function App() {
             >
               {availabilityImportPending
                 ? '[ IMPORTING GOOGLE AVAILABILITY... ]'
-                : '[ REPLACE WITH GOOGLE AVAILABILITY ]'}
+                : matchExisting
+                  ? '[ MATCH WITH GOOGLE AVAILABILITY ]'
+                  : '[ REPLACE WITH GOOGLE AVAILABILITY ]'}
             </button>
           </div>
           {calendarDiagnostic && (
@@ -2296,17 +2460,7 @@ function firstCommonWindow(
   durationMinutes: number,
 ) {
   const windowsByActor = actorIds.map((actorId) =>
-    availability
-      .filter(
-        (window) =>
-          window.actorId === actorId && window.availabilityType !== 'BUSY',
-      )
-      .map((window) => ({
-        start: parseLocalInputValue(window.start),
-        end: parseLocalInputValue(window.end),
-      }))
-      .filter((window) => window.end > window.start)
-      .sort((left, right) => left.start.getTime() - right.start.getTime()),
+    effectiveWindows(actorId, availability),
   )
 
   if (windowsByActor.some((windows) => windows.length === 0)) {

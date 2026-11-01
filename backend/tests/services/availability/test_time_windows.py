@@ -233,3 +233,16 @@ def test_add_elapsed_time_skips_nonexistent_local_time_across_dst() -> None:
     result = _add_elapsed_time(value, timedelta(minutes=30))
 
     assert result == datetime(2026, 3, 8, 3, 0, tzinfo=TORONTO)
+
+
+def test_adjacent_imported_availability_forms_one_rehearsal_window() -> None:
+    assert subtract_busy_windows(
+        [
+            TimeWindow(dt(2026, 7, 9, 18), dt(2026, 7, 9, 19)),
+            TimeWindow(dt(2026, 7, 9, 19), dt(2026, 7, 9, 22)),
+        ],
+        [TimeWindow(dt(2026, 7, 9, 20), dt(2026, 7, 9, 21))],
+    ) == [
+        TimeWindow(dt(2026, 7, 9, 18), dt(2026, 7, 9, 20)),
+        TimeWindow(dt(2026, 7, 9, 21), dt(2026, 7, 9, 22)),
+    ]

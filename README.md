@@ -60,13 +60,47 @@ http://localhost:8000/api/calendar/oauth/callback
 ```
 
 Start both servers, add actor email addresses, connect Google from the
-Availability section, and select `[ REPLACE WITH GOOGLE AVAILABILITY ]`. The
+Availability section, and select `[ MATCH WITH GOOGLE AVAILABILITY ]`. The
 connected account must be allowed to view each actor calendar's free/busy data.
 Calendars that are not shared are reported and do not overwrite manual windows.
 
 Optional environment overrides are `GOOGLE_OAUTH_CONFIG`,
 `GOOGLE_OAUTH_TOKEN_FILE`, `GOOGLE_REDIRECT_URI`, and
 `GOOGLE_OAUTH_SUCCESS_REDIRECT`.
+
+### Actor spreadsheets and matching
+
+In **Actor Windows**, download the CSV template (opens in Excel), fill it in,
+and upload `.xlsx` or UTF-8 `.csv`. Add the actors to the cast first. Each sheet
+needs `actor` (exact name), `email`, or `actor_id`, plus `start` and `end`.
+Names/emails ignore case and surrounding spaces; ambiguous names need an email
+or ID. If multiple identifiers are supplied, they must agree.
+
+Use ISO datetimes (`2026-11-02T18:00`), or a `date` column (`2026-11-02`) with
+start/end times (`18:00`). Native Excel date/time cells work too. Optional `type`
+is `AVAILABLE` (default), `PREFERRED`, or `BUSY`. Times use the browser timezone.
+Formula cells and ambiguous DST times are rejected. Old `.xls` files must be
+saved as `.xlsx`. Limits: 5 MB upload, 25 MB expanded workbook, 10,000 windows.
+Every nonempty sheet must follow this format; arbitrary weekly grid layouts
+are not supported.
+
+Review the matched rows, then choose **Add imported windows**. Invalid rows
+reject the whole file with sheet/row errors. Repeated identical windows are
+not added twice. Existing windows are kept, so import spreadsheets **before**
+matching Google. Use available rows to define rehearsal hours and busy rows to
+exclude commitments. Busy-only actors need Google free time or manual available
+windows before they can be scheduled.
+
+Google matching is enabled by default: it narrows existing availability to
+Google free time, preserves busy exclusions, and leaves inaccessible actors
+unchanged. With no existing positive availability, it starts from Google free
+time within production hours. Uncheck matching to explicitly replace windows.
+Imports are snapshots, not continuous sync; repeated matching can only narrow
+existing positive windows. To restore removed availability, explicitly replace
+with Google data and reimport the actor sheet, then match again. An actor with
+no overlap receives a busy block over the import range to preserve that result.
+Imports clear generated schedules and calendar approval; regenerate to find
+shared rehearsal windows for each scene's required actors.
 
 ## Deploy To Vercel
 

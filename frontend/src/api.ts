@@ -272,3 +272,24 @@ export function publishCalendar(
     body: JSON.stringify(payload),
   })
 }
+
+export type SpreadsheetImport = {
+  windows: {
+    actorId: number
+    start: string
+    end: string
+    availabilityType: string
+  }[]
+  windowCount: number
+}
+
+export function importActorSpreadsheet(
+  file: File,
+  actors: { id: number; name: string; email: string }[],
+): Promise<SpreadsheetImport> {
+  const body = new FormData()
+  body.append('file', file)
+  body.append('actors', JSON.stringify(actors))
+  body.append('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone)
+  return jsonRequest('/api/availability/import', { method: 'POST', body })
+}

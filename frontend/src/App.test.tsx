@@ -423,6 +423,9 @@ describe('App', () => {
     await user.type(screen.getByLabelText('Actor email'), 'rina@example.com')
     await user.click(screen.getByRole('button', { name: '[ ADD ACTOR ]' }))
     await screen.findByText('CONNECTED')
+    await user.click(
+      screen.getByLabelText('Match Google with existing actor windows'),
+    )
     expect(
       screen.getByRole('button', {
         name: '[ REPLACE WITH GOOGLE AVAILABILITY ]',
